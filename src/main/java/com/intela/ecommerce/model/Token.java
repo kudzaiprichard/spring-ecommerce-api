@@ -8,14 +8,16 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Document
-public class CartItem {
+public class Token{
     @Id
     private String id;
-    private Product product;
-    private Integer quantity;
-    private Cart cart;
+    private String Token;
+    private Boolean expired;
+    private Boolean revoked;
+    private TokenType tokenType;
+    private User user;
 }

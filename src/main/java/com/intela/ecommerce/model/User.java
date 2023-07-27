@@ -1,24 +1,41 @@
 package com.intela.ecommerce.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Document
 public class User implements UserDetails {
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
-    }
+    @Id
+    private String id;
+    private String firstName;
+    private String lastName;
+    @Indexed(unique = true)
+    private String email;
+    private String mobileNumber;
+    private String password;
+    private Role role;
 
     @Override
-    public String getPassword() {
-        return null;
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return role.getAuthorities();
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return this.email;
     }
 
     @Override

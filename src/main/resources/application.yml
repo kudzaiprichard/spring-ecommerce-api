@@ -5,3 +5,4 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/ecommerce
+      auto-index-creation: true
