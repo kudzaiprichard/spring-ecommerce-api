@@ -1,4 +1,4 @@
-package com.intela.ecommerce.model;
+package com.intela.ecommerce.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,10 +12,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @Builder
 @Document
-public class Image {
+public class CartItem {
     @Id
     private String id;
-    private String type;
-    private String name;
-    private String image;
+    private Product product;
+    private Integer quantity;
+    private Cart cart;
 }

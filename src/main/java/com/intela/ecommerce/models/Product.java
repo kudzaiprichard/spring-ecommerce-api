@@ -1,4 +1,4 @@
-package com.intela.ecommerce.model;
+package com.intela.ecommerce.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

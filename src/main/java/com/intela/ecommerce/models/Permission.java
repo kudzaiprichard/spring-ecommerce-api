@@ -1,4 +1,4 @@
-package com.intela.ecommerce.model;
+package com.intela.ecommerce.models;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

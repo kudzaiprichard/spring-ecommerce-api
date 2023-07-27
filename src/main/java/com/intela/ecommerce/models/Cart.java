@@ -1,4 +1,4 @@
-package com.intela.ecommerce.model;
+package com.intela.ecommerce.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,17 +7,16 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Document
-public class Token{
+public class Cart {
     @Id
     private String id;
-    private String Token;
-    private Boolean expired;
-    private Boolean revoked;
-    private TokenType tokenType;
     private User user;
+    private List<CartItem> cartItems;
 }

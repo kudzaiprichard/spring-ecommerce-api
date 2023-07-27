@@ -1,4 +1,4 @@
-package com.intela.ecommerce.model;
+package com.intela.ecommerce.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +22,7 @@ public class User implements UserDetails {
     private String id;
     private String firstName;
     private String lastName;
-    @Indexed(unique = true)
+    @Indexed(unique = false)
     private String email;
     private String mobileNumber;
     private String password;

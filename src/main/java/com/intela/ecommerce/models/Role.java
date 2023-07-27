@@ -1,4 +1,4 @@
-package com.intela.ecommerce.model;
+package com.intela.ecommerce.models;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.intela.ecommerce.model.Permission.*;
+import static com.intela.ecommerce.models.Permission.*;
 
 @RequiredArgsConstructor
 public enum Role {
