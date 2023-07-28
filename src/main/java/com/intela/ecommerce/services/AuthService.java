@@ -8,6 +8,7 @@ import com.intela.ecommerce.repositories.TokenRepository;
 import com.intela.ecommerce.repositories.UserRepository;
 import com.intela.ecommerce.requestResponse.AuthenticateRequest;
 import com.intela.ecommerce.requestResponse.AuthenticationResponse;
+import com.intela.ecommerce.requestResponse.LoggedUserResponse;
 import com.intela.ecommerce.requestResponse.RegisterRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+
+import static com.intela.ecommerce.util.Util.getUserByToken;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,19 @@ public class AuthService {
                 .revoked(false)
                 .build();
         tokenRepository.save(token);
+    }
+
+    public LoggedUserResponse fetchLoggedInUserByToken(
+            HttpServletRequest request
+    ){
+        User user = getUserByToken(request, jwtService, this.userRepository);
+        return LoggedUserResponse.builder()
+                .id(user.getId())
+                .firstname(user.getFirstName())
+                .lastname(user.getLastName())
+                .email(user.getEmail())
+                .mobileNumber(user.getMobileNumber())
+                .build();
     }
 
     private void revokeAllUserTokens(User user){

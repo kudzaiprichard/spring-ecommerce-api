@@ -17,6 +17,8 @@ public class Order {
     @Id
     private String id;
     private Cart cart;
+    private OrderStatus orderStatus;
     private ZonedDateTime createdAt;
+    private ZonedDateTime processedAt;
     private Integer total;
 }
