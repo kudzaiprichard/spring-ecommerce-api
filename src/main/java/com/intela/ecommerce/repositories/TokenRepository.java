@@ -9,9 +9,16 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TokenRepository extends MongoRepository<Token,Integer> {
+public interface TokenRepository extends MongoRepository<Token,String> {
     @Query(
         """
+            db.token.find(
+                {
+                    "expired": false,
+                    "revoked":  false,
+                    "user._id": ObjectId(?0)
+                }
+            )
         """
     )
     List<Token> findAllValidTokenByUser(String userId);

@@ -43,6 +43,7 @@ public class AuthService {
 
     private void revokeAllUserTokens(User user){
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+        System.out.println(user.getId());
         if(validUserTokens.isEmpty()) return;
 
         validUserTokens.forEach(token ->{
