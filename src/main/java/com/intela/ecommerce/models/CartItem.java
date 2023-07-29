@@ -17,5 +17,4 @@ public class CartItem {
     private String id;
     private Product product;
     private Integer quantity;
-    private Cart cart;
 }
