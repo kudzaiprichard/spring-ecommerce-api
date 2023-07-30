@@ -2,28 +2,27 @@ package com.intela.ecommerce.services;
 
 import com.intela.ecommerce.models.*;
 import com.intela.ecommerce.repositories.*;
+import com.intela.ecommerce.requestResponse.CartResponse;
+import com.intela.ecommerce.requestResponse.LoggedUserResponse;
+import com.intela.ecommerce.requestResponse.OrderResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.intela.ecommerce.util.Util.getUserByToken;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
-    private CartRepository cartRepository;
-    private CartItemRepository cartItemRepository;
-    private ImageRepository imageRepository;
-    private ProductRepository productRepository;
-    private UserRepository userRepository;
-    private OrderRepository orderRepository;
-    private CategoryRepository categoryRepository;
-    private JwtService jwtService;
+    private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
+    private final JwtService jwtService;
 
     /*
      * Products functions
@@ -43,18 +42,24 @@ public class CustomerService {
      * Cart functions
      */
     //Todo: add product in user cart
-    public Cart addProductInCart(
+    public CartResponse addProductInCart(
             String productId,
             HttpServletRequest request
     ){
         User user = getUserByToken(request, jwtService, this.userRepository);
         Cart cart = this.cartRepository.findByUserId(user.getId());
-        Product product = this.productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Could not find product"));
+        Product product = this.productRepository.findById(productId).orElse(null);
+        LoggedUserResponse userResponse = LoggedUserResponse.builder()
+                .id(user.getId())
+                .firstname(user.getFirstName())
+                .lastname(user.getLastName())
+                .email(user.getEmail())
+                .mobileNumber(user.getMobileNumber())
+                .build();
 
         //check if cart instance exists
         //if not create a new cart for the user
-        if(cart.getId().isBlank()){
+        if(cart == null){
             List<CartItem> cartItems = new ArrayList<>();
             //Create a new cart item and add it in a list
             CartItem savedCartItem = this.cartItemRepository.save(
@@ -66,42 +71,57 @@ public class CustomerService {
             cartItems.add(savedCartItem);
 
             //create a new cart item and add them to the new cart
-            Cart newCart = Cart.builder()
-                    .user(user)
-                    .cartItems(cartItems)
-                    .build();
-
             //save the new cart in the database
-            return this.cartRepository.save(newCart);
+            Cart savedCart = this.cartRepository.save(
+                                  Cart.builder()
+                                       .user(user)
+                                       .cartItems(cartItems)
+                                       .build()
+                                );
+            return CartResponse.builder()
+                    .id(savedCart.getId())
+                    .user(userResponse)
+                    .cartItems(savedCart.getCartItems())
+                    .build();
         }
         else {
-            boolean productExist = true;
             //get all as a list cart items from cart
             //check if product already exists in one of the cart items
             for (CartItem cartItem : cart.getCartItems()) {
+                assert product != null;
                 if (Objects.equals(cartItem.getProduct().getId(), product.getId())) {
                     //if product exist then add a 1 to the quantity of the product item
                     cartItem.setQuantity(cartItem.getQuantity() + 1);
-                    productExist = false;
-                    break;
+
+                    //save,update and return the cart item
+                    this.cartRepository.save(cart);
+
+                    return CartResponse.builder()
+                            .id(cart.getId())
+                            .user(userResponse)
+                            .cartItems(cart.getCartItems())
+                            .build();
                 }
             }
 
             //if product does not exist
-            if(!productExist){
-                //create a new cart item with product and quantity as 1
-                CartItem savedCartItem = this.cartItemRepository.save(
-                        CartItem.builder()
-                                .product(product)
-                                .quantity(1)
-                                .build()
-                );
-                //add the cart item in the cart
-                cart.getCartItems().add(savedCartItem);
-            }
+            //create a new cart item with product and quantity as 1
+            CartItem savedCartItem = this.cartItemRepository.save(
+                    CartItem.builder()
+                            .product(product)
+                            .quantity(1)
+                            .build()
+            );
+            //add the cart item in the cart
+            cart.getCartItems().add(savedCartItem);
 
             //save,update and return the cart item
-            return this.cartRepository.save(cart);
+            this.cartRepository.save(cart);
+            return CartResponse.builder()
+                    .id(cart.getId())
+                    .user(userResponse)
+                    .cartItems(cart.getCartItems())
+                    .build();
         }
 
     }
@@ -144,7 +164,7 @@ public class CustomerService {
     }
 
     //Todo: create an order by cart id
-    public Order createOrder(String cartId, HttpServletRequest request){
+    public OrderResponse createOrder(HttpServletRequest request){
         int total = 0;
         User user = getUserByToken(request, jwtService, this.userRepository);
         Cart cart = this.cartRepository.findByUserId(user.getId());
@@ -153,16 +173,43 @@ public class CustomerService {
             total = total + (cartItem.getQuantity() * cartItem.getProduct().getPrice());
         }
 
-        return this.orderRepository.save(
+        Order savedOrder = this.orderRepository.save(
                 Order.builder()
                         .orderStatus(OrderStatus.PENDING)
                         .cart(cart)
                         .createdAt(ZonedDateTime.now())
-                        .processedAt(null)
+                        .orderStatus(OrderStatus.PENDING)
+                        .processedAt(ZonedDateTime.now())
                         .total(total)
                         .build()
         );
+
+        return OrderResponse.builder()
+                .id(savedOrder.getId())
+                .cart(savedOrder.getCart())
+                .orderStatus(savedOrder.getOrderStatus())
+                .createdAt(savedOrder.getCreatedAt())
+                .total(savedOrder.getTotal())
+                .processedAt(savedOrder.getProcessedAt())
+                .build();
     }
 
 
+    public CartResponse fetchCartByUserId(HttpServletRequest request) {
+        User user = getUserByToken(request, jwtService, this.userRepository);
+        Cart cart = this.cartRepository.findByUserId(user.getId());
+        LoggedUserResponse userResponse = LoggedUserResponse.builder()
+                .id(user.getId())
+                .firstname(user.getFirstName())
+                .lastname(user.getLastName())
+                .mobileNumber(user.getMobileNumber())
+                .email(user.getEmail())
+                .build();
+
+        return CartResponse.builder()
+                .id(cart.getId())
+                .user(userResponse)
+                .cartItems(cart.getCartItems())
+                .build();
+    }
 }

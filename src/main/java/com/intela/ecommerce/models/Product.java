@@ -22,5 +22,6 @@ public class Product {
     private String color;
     private Integer quantity;
     private Integer price;
+    private Category category;
     private List<Image> images;
 }

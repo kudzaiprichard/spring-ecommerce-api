@@ -13,6 +13,12 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
+import static com.intela.ecommerce.models.Permission.*;
+import static com.intela.ecommerce.models.Role.CUSTOMER;
+import static com.intela.ecommerce.models.Role.SHOPKEEPER;
+import static org.springframework.http.HttpMethod.*;
+import static org.springframework.http.HttpMethod.DELETE;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -28,6 +34,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorize)->authorize
                         .requestMatchers("/api/v1/auth/**")
                         .permitAll()
+                        //SHOPKEEPER ENDPOINTS
+                        .requestMatchers("/api/v1/shopkeeper/**").hasRole(SHOPKEEPER.name())
+                        .requestMatchers(GET,"/api/v1/shopkeeper/**").hasAuthority(SHOPKEEPER_READ.name())
+                        .requestMatchers(POST,"/api/v1/shopkeeper/**").hasAuthority(SHOPKEEPER_CREATE.name())
+                        .requestMatchers(PUT,"/api/v1/shopkeeper/**").hasAuthority(SHOPKEEPER_UPDATE.name())
+                        .requestMatchers(DELETE,"/api/v1/shopkeeper/**").hasAuthority(SHOPKEEPER_DELETE.name())
+
+                        //CUSTOMER ENDPOINTS
+                        .requestMatchers("/api/v1/customer/**").hasRole(CUSTOMER.name())
+                        .requestMatchers(GET,"/api/v1/customer/**").hasAuthority(CUSTOMER_READ.name())
+                        .requestMatchers(POST,"/api/v1/customer/**").hasAuthority(CUSTOMER_CREATE.name())
+                        .requestMatchers(PUT,"/api/v1/customer/**").hasAuthority(CUSTOMER_UPDATE.name())
+                        .requestMatchers(DELETE,"/api/v1/customer/**").hasAuthority(CUSTOMER_DELETE.name())
+
                         .anyRequest()
                         .authenticated()
                 )

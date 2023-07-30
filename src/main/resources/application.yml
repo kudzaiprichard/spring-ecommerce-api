@@ -9,9 +9,11 @@ spring:
 
 
 application:
+  file-system:
+    folder-path: C:/Users/KudzaiPrichard/Documents/Projects/Kudzai/Pending/ecommerce/src/main/resources/static/uploads/
   security:
     jwt:
       secret-key: 8d4fed75477d160c393db8a22edce23a5ae7971b4533077d89ac0016dd92c879d21791073310294924cb896443a8214cfdc129baa42af8b3030a397382a93532
-      expiration: 86400000 # 24/7
+      expiration: 86400000
       refresh-token:
-        expiration: 604800000 # 7 days
+        expiration: 604800000
