@@ -1,6 +1,14 @@
 server:
   port: 8090
 
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            repository:
+              query: DEBUG
 spring:
   data:
     mongodb:
