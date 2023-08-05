@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import java.time.ZonedDateTime;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -18,7 +18,7 @@ public class Order {
     private String id;
     private Cart cart;
     private OrderStatus orderStatus;
-    private ZonedDateTime createdAt;
-    private ZonedDateTime processedAt;
-    private Integer total;
+    private Date createdAt;
+    private Date processedAt;
+    private Long total;
 }

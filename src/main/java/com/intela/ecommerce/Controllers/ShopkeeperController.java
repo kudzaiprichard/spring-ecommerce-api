@@ -5,6 +5,7 @@ import com.intela.ecommerce.models.Category;
 import com.intela.ecommerce.models.Order;
 import com.intela.ecommerce.models.OrderStatus;
 import com.intela.ecommerce.models.Product;
+import com.intela.ecommerce.requestResponse.OrderResponse;
 import com.intela.ecommerce.requestResponse.ProductRequest;
 import com.intela.ecommerce.services.ShopkeeperService;
 import lombok.RequiredArgsConstructor;
@@ -98,7 +99,7 @@ public class ShopkeeperController{
     }
 
     @PostMapping("/order/process/{orderId}")
-    public Order processOrderById(
+    public OrderResponse processOrderById(
             @RequestParam OrderStatus orderStatus,
             @PathVariable String orderId
     ) {

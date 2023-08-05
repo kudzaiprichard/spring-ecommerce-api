@@ -2,6 +2,9 @@ package com.intela.ecommerce.services;
 
 import com.intela.ecommerce.models.*;
 import com.intela.ecommerce.repositories.*;
+import com.intela.ecommerce.requestResponse.CartResponse;
+import com.intela.ecommerce.requestResponse.LoggedUserResponse;
+import com.intela.ecommerce.requestResponse.OrderResponse;
 import com.intela.ecommerce.requestResponse.ProductRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,9 +13,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.ZonedDateTime;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 @Service
@@ -28,12 +33,19 @@ public class ShopkeeperService {
     /*
     * Function to manage products
     */
-    private void multipartFileToImageList(MultipartFile[] imagesRequest, List<Image> images) {
+    private void multipartFileToImageList(MultipartFile[] imagesRequest, List<Image> images, String productName) {
 
         Arrays.asList(imagesRequest).forEach(
                 imageRequest -> {
-                    String filePath = FOLDER_PATH + imageRequest.getOriginalFilename();
-                     Image image = Image.builder()
+                    File file = new File(FOLDER_PATH + "/" + productName);
+                    if(!file.exists()) {
+                        if(!file.mkdir())
+                            throw new RuntimeException("Failed to create new directory");
+                    }
+
+                    String filePath = file.getPath() + "/" + imageRequest.getOriginalFilename();
+
+                    Image image = Image.builder()
                             .image(filePath)
                             .name(imageRequest.getOriginalFilename())
                             .type(imageRequest.getContentType())
@@ -56,7 +68,7 @@ public class ShopkeeperService {
                         .build()
         );
 
-        multipartFileToImageList(images,imageList);
+        multipartFileToImageList(images,imageList,request.getName());
 
         //Todo: get all images and save them in a list
         try {
@@ -85,7 +97,7 @@ public class ShopkeeperService {
         Product product = this.productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Could not find product"));
 
-        multipartFileToImageList(images,imageList);
+        multipartFileToImageList(images,imageList,product.getName());
 
         product.setImages(imageList);
         return this.productRepository.save(product);
@@ -129,8 +141,16 @@ public class ShopkeeperService {
 
 
         if(images.length > 0){
-            multipartFileToImageList(images,imageList);
+            multipartFileToImageList(images,imageList, dbProduct.getName());
+            for(Image image: dbProduct.getImages()){
+                try {
+                    Files.deleteIfExists(Path.of(image.getImage()));
+                }catch (Exception e){
+                    throw new RuntimeException("Failed to Update images: " + e);
+                }
+            }
             dbProduct.setImages(imageList);
+
         }
 
         return this.productRepository.save(dbProduct);
@@ -150,14 +170,39 @@ public class ShopkeeperService {
                 .orElseThrow(() -> new RuntimeException("Could not find order"));
     }
 
-    public Order processOrderById(OrderStatus orderStatus, String orderId){
+    public OrderResponse processOrderById(OrderStatus orderStatus, String orderId){
+        System.out.println(orderId);
+        Calendar calendar = Calendar.getInstance();
         Order order = this.orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Could not find order"));
 
         if(orderStatus == null) throw new RuntimeException("Make sure you have selected order status");
-        order.setProcessedAt(ZonedDateTime.now());
+        order.setProcessedAt(calendar.getTime());
         order.setOrderStatus(orderStatus);
-        return this.orderRepository.save(order);
+        Order savedOrder = this.orderRepository.save(order);
+
+        LoggedUserResponse user  = LoggedUserResponse.builder()
+                .id(savedOrder.getCart().getUser().getId())
+                .firstname(savedOrder.getCart().getUser().getFirstName())
+                .lastname(savedOrder.getCart().getUser().getLastName())
+                .email(savedOrder.getCart().getUser().getEmail())
+                .mobileNumber(savedOrder.getCart().getUser().getMobileNumber())
+                .build();
+
+        return OrderResponse.builder()
+                .id(savedOrder.getId())
+                .cart(
+                        CartResponse.builder()
+                                .id(savedOrder.getCart().getId())
+                                .user(user)
+                                .cartItems(savedOrder.getCart().getCartItems())
+                                .build()
+                )
+                .total(savedOrder.getTotal())
+                .orderStatus(savedOrder.getOrderStatus())
+                .processedAt(savedOrder.getProcessedAt())
+                .createdAt(savedOrder.getCreatedAt())
+                .build();
     }
 
     public Category createCategory(String category) {
